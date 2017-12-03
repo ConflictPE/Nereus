@@ -1,3 +1,5 @@
-require("./loader.js");
-SocketInstance = new SocketHandler(19132);
+console.log("hi");
 
+const Server = require("./src/Server");
+
+new Server();
