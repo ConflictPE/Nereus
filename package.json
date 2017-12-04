@@ -1,16 +1,16 @@
 {
-    "name": "DirtServer",
+    "name": "Nereus",
     "version": "0.0.1",
-    "description": "An MCPE server written in Javascript",
-    "author": "Falkirks",
+    "description": "An MCPE server written in Node.js",
+    "author": "Jack Noordhuis",
     "main": "main.js",
     "bin": {
-        "dirtserver": "bin/dirtserver"
+        "dirtserver": "bin/nereus"
     },
     "dependencies": {
         "bytebuffer": "*"
     },
     "preferGlobal": true,
     "private": true,
-    "license": "MIT"
+    "license": "Closed Source"
 }
