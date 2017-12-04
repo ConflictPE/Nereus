@@ -19,6 +19,7 @@ class ConnectedPing extends OfflineMessage {
 		this.bb.writeLong(this.pingID);
 		this.bb.writeLong(this.serverID);
 		this.writeMagic();
+		this.bb.writeShort(this.serverName.length);
 		this.bb.writeString(this.serverName);
 	}
 

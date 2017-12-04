@@ -1,5 +1,7 @@
 const dgram = require("dgram");
 
+const OfflineMessageHandler = require("./OfflineMessageHandler");
+
 const OfflineMessage = require("./packet/OfflineMessage");
 const UnconnectedPing = require("./packet/UnconnectedPing");
 const UnconnectedPingOpenConnections = require("./packet/UnconnectedPingOpenConnections");
@@ -13,52 +15,41 @@ const AdvertiseSystem = require("./packet/AdvertiseSystem");
 class SocketHandler {
 
 	constructor(address, port) {
+		this.id = Math.floor(Math.random() * Math.MAX_SAFE_INTEGER);
+
+		this.name = "";
+
 		this.server = dgram.createSocket("udp4");
+		this.server.handler = this;
+
 		this.packetPool = [];
 		this.registerPackets();
+
+		this.offlineMessageHandler = new OfflineMessageHandler(this);
 		this.sessions = [];
-		this.server.handler = this;
-		this.server.bind(port, address);
-		this.server.on("error", this.handleError);
-		this.server.on("message", this.handleMessage);
 
-		this.server.on("listening", function() {
-			let address = this.address();
-			console.log("RakLib server listening on " + address.address + ":" + address.port);
+		this.server.on("error", (err) => {
+			console.log("RakLib error:\n" + err.stack);
+			this.server.close();
 		});
+
+		this.server.on("message", (msg, rinfo) => {
+			this.handleMessage(msg, rinfo);
+		});
+
+		this.server.on("listening", () => {
+			console.log("RakLib server listening on " + address + ":" + port);
+		});
+
+		this.server.bind(port, address);
 	}
 
-	handleError(err) {
-		console.log("RakLib error:\n" + err.stack);
-		this.server.close();
+	getId() {
+		return this.id;
 	}
 
-	handleMessage(msg, rinfo) {
-		let pk = this.handler.getPacketFromPool(msg[0], msg.toString());
-		if(pk !== null) {
-			console.log("Server got: " + pk.constructor.name + " from " + rinfo.address + ":" + rinfo.port);
-			let session = this.handler.getSession(rinfo.address, rinfo.port);
-			if(session === null) {
-				if (pk instanceof OfflineMessage) {
-					pk.decode();
-					if(pk.validateMagic()) {
-
-					} else {
-						console.log("Received garbage message from " + rinfo.address + ":" + rinfo.port + ": " + pk.constructor.name);
-					}
-				} else {
-
-				}
-			} else {
-
-			}
-		} else {
-			console.log("Unknown packet: " + msg);
-		}
-	}
-
-	sendPacket(pk, ip, port) {
-		this.server.send(pk.bb.buffer, 0, pk.bb.buffer.length, port, ip);
+	getName() {
+		return this.name;
 	}
 
 	getSession(ip, port) {
@@ -80,6 +71,41 @@ class SocketHandler {
 		}
 
 		return null;
+	}
+
+	setName(name) {
+		this.name = name;
+	}
+
+	handleMessage(msg, rinfo) {
+		let pk = this.getPacketFromPool(msg[0], msg.toString());
+		if(pk !== null) {
+			console.log("Server got: " + pk.constructor.name + " from " + rinfo.address + ":" + rinfo.port);
+			let session = this.getSession(rinfo.address, rinfo.port);
+			if(session === null) {
+				if (pk instanceof OfflineMessage) {
+					pk.decode();
+					// if(pk.validateMagic()) {
+						this.offlineMessageHandler.handle(pk, {
+							ip: rinfo.address,
+							port: rinfo.port
+						});
+					// } else {
+					// 	console.log("Received garbage message from " + rinfo.address + ":" + rinfo.port + ": " + pk.constructor.name);
+					// }
+				} else {
+
+				}
+			} else {
+
+			}
+		} else {
+			console.log("Unknown packet: " + msg);
+		}
+	}
+
+	sendPacket(pk, source) {
+		this.server.send(pk.bb.buffer, 0, pk.bb.buffer.length, source.port, source.ip);
 	}
 
 	registerPacket(id, pk) {

@@ -79,6 +79,8 @@ class RakPacket {
 
 	reset() {
 		this.bb.reset();
+		this.bb.buffer[0] = this.getId();
+		this.bb.offset = 1;
 	}
 
 }
