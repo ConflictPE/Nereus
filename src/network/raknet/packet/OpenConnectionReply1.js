@@ -24,7 +24,7 @@ class OpenConnectionReply1 extends OfflineMessage {
 
 	decodePayload() {
 		this.readMagic();
-		this.serverID = this.bb.readLong();
+		this.serverID = this.bb.readLong().low;
 		this.serverSecurity = this.bb.readByte() !== 0;
 		this.mtuSize = this.bb.readShort();
 	}

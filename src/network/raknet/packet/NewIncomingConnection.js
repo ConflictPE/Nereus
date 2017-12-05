@@ -39,8 +39,8 @@ class NewIncomingConnection extends RakPacket {
 			}
 		}
 
-		this.sendPingTime = this.bb.readLong();
-		this.sendPongTime = this.bb.readLong();
+		this.sendPingTime = this.bb.readLong().low;
+		this.sendPongTime = this.bb.readLong().low;
 	}
 
 }

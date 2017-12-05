@@ -18,7 +18,7 @@ class ConnectedPing extends RakPacket {
 	}
 
 	decodePayload() {
-		this.sendPingTime = this.bb.readLong();
+		this.sendPingTime = this.bb.readLong().low;
 	}
 
 }

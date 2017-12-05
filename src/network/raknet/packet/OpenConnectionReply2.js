@@ -27,7 +27,7 @@ class OpenConnectionReply2 extends OfflineMessage {
 
 	decodePayload() {
 		this.readMagic();
-		this.serverID = this.bb.readLong();
+		this.serverID = this.bb.readLong().low;
 		let addrInfo = this.getAddress();
 		this.clientAddress = addrInfo.ip;
 		this.clientPort = addrInfo.port;

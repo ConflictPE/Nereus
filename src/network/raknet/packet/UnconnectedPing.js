@@ -1,7 +1,7 @@
 const OfflineMessage = require("./OfflineMessage");
 const MessageIdentifiers = require("./MessageIdentifiers");
 
-class ConnectedPing extends OfflineMessage {
+class UnconnectedPing extends OfflineMessage {
 
 	static getId() {
 		return MessageIdentifiers.ID_UNCONNECTED_PING;
@@ -19,10 +19,11 @@ class ConnectedPing extends OfflineMessage {
 	}
 
 	decodePayload() {
-		this.pingID = this.bb.readLong();
+		this.pingID = this.bb.readLong().low;
+		this.bb.flip();
 		this.readMagic();
 	}
 
 }
 
-module.exports = ConnectedPing;
+module.exports = UnconnectedPing;

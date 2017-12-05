@@ -21,7 +21,7 @@ class OfflineMessageHandler {
 				pk = new UnconnectedPong();
 				pk.serverID = this.handler.getId();
 				pk.pingID = packet.pingID;
-				pk.serverName = "MCPE;Nereus Server;141;1.2;0;10";
+				pk.serverName = this.getHandler().getName();
 				this.handler.sendPacket(pk, source);
 				return true;
 			case MessageIdentifiers.ID_OPEN_CONNECTION_REQUEST_1:
@@ -31,7 +31,7 @@ class OfflineMessageHandler {
 				this.handler.sendPacket(pk, source);
 				return true;
 			case MessageIdentifiers.ID_OPEN_CONNECTION_REQUEST_2:
-				if(packet.serverPort !== this.getHandler().source.port) {
+				if(packet.serverPort === this.getHandler().source.port) {
 					let mtuSize = Math.min(Math.abs(packet.mtuSize), 1464); // Max size, do not allow creating large buffers to fill server memory
 					pk = new OpenConnectionReply2();
 					pk.mtuSize = mtuSize;

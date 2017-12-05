@@ -18,7 +18,8 @@ class AdvertiseSystem extends RakPacket {
 	}
 
 	decodePayload() {
-		this.serverName = this.bb.readString();
+		let len = this.bb.readShort();
+		this.serverName = this.bb.readString(len);
 	}
 
 }

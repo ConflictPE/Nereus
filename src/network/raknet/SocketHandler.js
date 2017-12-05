@@ -1,6 +1,8 @@
 const dgram = require("dgram");
 
 const OfflineMessageHandler = require("./OfflineMessageHandler");
+const BedrockProtocol = require("../minecraft/BedrockProtocol");
+const Nereus = require("../../Nereus");
 
 const OfflineMessage = require("./packet/OfflineMessage");
 const UnconnectedPing = require("./packet/UnconnectedPing");
@@ -14,8 +16,10 @@ const AdvertiseSystem = require("./packet/AdvertiseSystem");
 
 class SocketHandler {
 
-	constructor(address, port) {
-		this.id = Math.floor(Math.random() * Math.MAX_SAFE_INTEGER);
+	constructor(server, address, port) {
+		this.server = server;
+
+		this.id = Math.floor(Math.random() * 999999);
 
 		this.source = {
 			ip: address,
@@ -23,8 +27,7 @@ class SocketHandler {
 		};
 		this.name = "";
 
-		this.server = dgram.createSocket("udp4");
-		this.server.handler = this;
+		this.socket = dgram.createSocket("udp4");
 
 		this.packetPool = [];
 		this.registerPackets();
@@ -32,20 +35,25 @@ class SocketHandler {
 		this.offlineMessageHandler = new OfflineMessageHandler(this);
 		this.sessions = new Map();
 
-		this.server.on("error", (err) => {
+		this.socket.on("error", (err) => {
 			console.log("RakLib error:\n" + err.stack);
 			this.server.close();
 		});
 
-		this.server.on("message", (msg, rinfo) => {
+		this.socket.on("message", (msg, rinfo) => {
 			this.handleMessage(msg, rinfo);
 		});
 
-		this.server.on("listening", () => {
+		this.socket.on("listening", () => {
 			console.log("RakLib server listening on " + address + ":" + port);
 		});
 
-		this.server.bind(port, address);
+		this.refreshName();
+		this.nameUpdateTask = setInterval(() => {
+			this.refreshName();
+		}, 10000); // update the motd every 10 seconds
+
+		this.socket.bind(port, address);
 	}
 
 	getId() {
@@ -69,7 +77,7 @@ class SocketHandler {
 	getPacketFromPool(id, buffer) {
 		if(id in this.packetPool) {
 			let pk = new this.packetPool[id];
-			pk.bb.buffer = buffer;
+			pk.bb.append(buffer, "hex");
 
 			return pk;
 		}
@@ -82,21 +90,21 @@ class SocketHandler {
 	}
 
 	handleMessage(msg, rinfo) {
-		let pk = this.getPacketFromPool(msg[0], msg.toString());
+		let pk = this.getPacketFromPool(msg[0], msg);
 		if(pk !== null) {
 			console.log("Server got: " + pk.constructor.name + " from " + rinfo.address + ":" + rinfo.port);
 			let session = this.getSession(rinfo.address, rinfo.port);
 			if(session === null) {
 				if (pk instanceof OfflineMessage) {
 					pk.decode();
-					if(pk.validateMagic()) {
+					// if(pk.validateMagic()) {
 						this.offlineMessageHandler.handle(pk, {
 							ip: rinfo.address,
 							port: rinfo.port
 						});
-					} else {
-						console.log("Received garbage message from " + rinfo.address + ":" + rinfo.port + ": " + pk.constructor.name);
-					}
+					// } else {
+					// 	console.log("Received garbage message from " + rinfo.address + ":" + rinfo.port + ": " + pk.constructor.name);
+					// }
 				} else {
 
 				}
@@ -104,17 +112,18 @@ class SocketHandler {
 
 			}
 		} else {
-			console.log("Unknown packet: " + msg);
+			console.log("Unknown packet " + msg[0] + ": " + msg);
 		}
 	}
 
 	sendPacket(pk, source) {
-		this.server.send(pk.bb.buffer, 0, pk.bb.buffer.length, source.port, source.ip);
+		pk.encode();
+		this.socket.send(pk.bb.buffer, 0, pk.bb.buffer.length, source.port, source.ip);
 		console.log("sending " + pk.constructor.name + " to " + source.ip + ":" + source.port);
 	}
 
 	openSession(source, clientId, mtuSize) {
-		this.sessions.set(source.ip + ":" + source.port, );
+		this.sessions.set(source.ip + ":" + source.port, {});
 	}
 
 	registerPacket(id, pk) {
@@ -132,6 +141,20 @@ class SocketHandler {
 		this.registerPacket(OpenConnectionReply2.getId(), OpenConnectionReply2);
 		this.registerPacket(UnconnectedPong.getId(), UnconnectedPong);
 		this.registerPacket(AdvertiseSystem.getId(), AdvertiseSystem);
+	}
+
+	refreshName() {
+		this.name = [
+			"MCPE",
+			this.server.getMotd(),
+			BedrockProtocol.CURRENT_PROTOCOL,
+			BedrockProtocol.VERSION_NETWORK,
+			this.server.getOnlinePlayers().length,
+			this.server.getMaxPlayers(),
+			this.id,
+			Nereus.NAME,
+			"SMP"
+		].join(";") + ";";
 	}
 
 }

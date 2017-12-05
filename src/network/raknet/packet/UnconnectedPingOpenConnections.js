@@ -1,7 +1,7 @@
 const UnconnectedPing = require("./UnconnectedPing");
 const MessageIdentifiers = require("./MessageIdentifiers");
 
-class ConnectedPing extends UnconnectedPing {
+class UnconnectedPingOpenConnections extends UnconnectedPing {
 
 	static getId() {
 		return MessageIdentifiers.ID_UNCONNECTED_PING_OPEN_CONNECTIONS;
@@ -9,4 +9,4 @@ class ConnectedPing extends UnconnectedPing {
 
 }
 
-module.exports = ConnectedPing;
+module.exports = UnconnectedPingOpenConnections;

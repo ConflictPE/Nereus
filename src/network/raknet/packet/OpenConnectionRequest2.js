@@ -29,7 +29,7 @@ class OpenConnectionRequest2 extends OfflineMessage {
 		this.serverAddress = addrInfo.ip;
 		this.serverPort = addrInfo.port;
 		this.mtuSize = this.bb.readShort();
-		this.clientID = this.bb.readLong();
+		this.clientID = this.bb.readLong().low;
 	}
 
 }

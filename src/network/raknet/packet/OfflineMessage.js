@@ -10,15 +10,17 @@ class OfflineMessage extends RakPacket {
 	}
 
 	readMagic() {
-		this.magic = this.bb.buffer.slice(0, 16);
+		this.magic = this.bb.buffer.slice(0, 16).toString("binary");
+		this.bb.offset += 16;
 	}
 
 	writeMagic() {
-		this.bb.append(RakNet.getMagic());
+		this.magic = RakNet.getMagic();
+		this.bb.append(this.magic, "binary");
 	}
 
 	validateMagic() {
-		return this.magic === RakNet.getMagic();
+		return RakNet.getMagic() === this.magic;
 	}
 
 }

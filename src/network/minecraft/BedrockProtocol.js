@@ -1,5 +1,8 @@
 const BedrockProtocol = {
-	CURRENT_PROTOCOL: 18,
+	CURRENT_PROTOCOL: 141,
+
+	VERSION: "v1.2.5", // Pretty version string used for messages
+	VERSION_NETWORK: "1.2.5", // Version string used in ping responses
 
 	PING: 0x00,
 	PONG: 0x03,

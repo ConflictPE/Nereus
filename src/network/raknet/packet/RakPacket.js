@@ -13,8 +13,6 @@ class RakPacket {
 
 	constructor() {
 		this.bb = new ByteBuffer();
-		this.bb.buffer[0] = this.getId();
-		this.bb.offset = 1;
 
 		this.bb.readByte(1);
 	}
@@ -60,7 +58,8 @@ class RakPacket {
 	}
 
 	encodeHeader() {
-		this.bb.writeByte(this.getId());
+		this.bb.buffer[0] = this.getId();
+		this.bb.offset = 1;
 	}
 
 	encodePayload() {}

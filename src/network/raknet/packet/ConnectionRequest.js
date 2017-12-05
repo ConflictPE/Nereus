@@ -22,8 +22,8 @@ class ConnectionRequest extends RakPacket {
 	}
 
 	decodePayload() {
-		this.clientID = this.bb.readLong();
-		this.sendPingTime = this.bb.readLong();
+		this.clientID = this.bb.readLong().low;
+		this.sendPingTime = this.bb.readLong().low;
 		this.useSecurity = this.bb.readByte() !== 0;
 	}
 
