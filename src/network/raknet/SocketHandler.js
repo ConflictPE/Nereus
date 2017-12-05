@@ -17,6 +17,10 @@ class SocketHandler {
 	constructor(address, port) {
 		this.id = Math.floor(Math.random() * Math.MAX_SAFE_INTEGER);
 
+		this.source = {
+			ip: address,
+			port: port
+		};
 		this.name = "";
 
 		this.server = dgram.createSocket("udp4");
@@ -26,7 +30,7 @@ class SocketHandler {
 		this.registerPackets();
 
 		this.offlineMessageHandler = new OfflineMessageHandler(this);
-		this.sessions = [];
+		this.sessions = new Map();
 
 		this.server.on("error", (err) => {
 			console.log("RakLib error:\n" + err.stack);
@@ -85,14 +89,14 @@ class SocketHandler {
 			if(session === null) {
 				if (pk instanceof OfflineMessage) {
 					pk.decode();
-					// if(pk.validateMagic()) {
+					if(pk.validateMagic()) {
 						this.offlineMessageHandler.handle(pk, {
 							ip: rinfo.address,
 							port: rinfo.port
 						});
-					// } else {
-					// 	console.log("Received garbage message from " + rinfo.address + ":" + rinfo.port + ": " + pk.constructor.name);
-					// }
+					} else {
+						console.log("Received garbage message from " + rinfo.address + ":" + rinfo.port + ": " + pk.constructor.name);
+					}
 				} else {
 
 				}
@@ -106,6 +110,11 @@ class SocketHandler {
 
 	sendPacket(pk, source) {
 		this.server.send(pk.bb.buffer, 0, pk.bb.buffer.length, source.port, source.ip);
+		console.log("sending " + pk.constructor.name + " to " + source.ip + ":" + source.port);
+	}
+
+	openSession(source, clientId, mtuSize) {
+		this.sessions.set(source.ip + ":" + source.port, );
 	}
 
 	registerPacket(id, pk) {

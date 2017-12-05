@@ -10,11 +10,11 @@ class OfflineMessage extends RakPacket {
 	}
 
 	readMagic() {
-		this.magic = this.bb.buffer.slice(0, 16).toString("binary");
+		this.magic = this.bb.buffer.slice(0, 16);
 	}
 
 	writeMagic() {
-		this.bb.append(RakNet.getMagic(), "hex");
+		this.bb.append(RakNet.getMagic());
 	}
 
 	validateMagic() {

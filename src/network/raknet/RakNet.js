@@ -7,7 +7,7 @@ class RakNet {
 	}
 
 	static getMagic() {
-		return "00ffff00fefefefefdfdfdfd12345678";
+		return "\x00\xff\xff\x00\xfe\xfe\xfe\xfe\xfd\xfd\xfd\xfd\x12\x34\x56\x78";
 	}
 
 	static getServerId() {
